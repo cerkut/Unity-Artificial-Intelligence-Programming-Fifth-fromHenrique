@@ -1,25 +1,30 @@
-﻿using Pada1.BBCore;           // Code attributes
-using Pada1.BBCore.Framework; // BasePrimitiveAction
-using Pada1.BBCore.Tasks;     // TaskStatus
+﻿using System;
+using Unity.Behavior;
+using Unity.Properties;
+using UnityEngine;
+using Action = Unity.Behavior.Action;
 
 /// <summary>
-/// It is an action that inherits from a primitive base action that updates the status of the behavior to suspended, in this case
-/// is suspended by changing the brightness.
+/// SleepForeverAction is a Unity Behavior action node that never completes.
+/// It is used to keep the enemy idle (e.g., during night time) without consuming CPU.
 /// </summary>
-[Action("Chapter09/SleepForever")]
-[Help("Low-cost infinite action that never ends. It does not consume CPU at all.")]
-
-
-public class SleepForever : BasePrimitiveAction
+[Serializable, GeneratePropertyBag]
+[NodeDescription(
+    name: "Sleep Forever",
+    story: "Sleep forever (do nothing)",
+    category: "Chapter09",
+    id: "chapter09-sleepforever-action-v1")]
+public partial class SleepForeverAction : Action
 {
-
-    // Main class method, invoked by the execution engine.
-    ///<summary>Method of onUpdate of SleepForever.</summary>
-    ///<remarks>Change the status of the task.</remarks>
-    ///<return>Value of the status of the suspended task.</return>
-    public override TaskStatus OnUpdate()
+    /// <summary>
+    /// Suspends the node so it is not called every frame, conserving CPU.
+    /// <see cref="Status.Wait"/> is the Unity Behavior equivalent of the former
+    /// BehaviorBricks <c>TaskStatus.SUSPENDED</c>.
+    /// </summary>
+    /// <returns>Always returns <see cref="Status.Wait"/>.</returns>
+    protected override Status OnUpdate()
     {
-        return TaskStatus.SUSPENDED;
+        return Status.Wait;
     }
-
 }
+
