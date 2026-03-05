@@ -1,74 +1,64 @@
-﻿using UnityEngine;
-
-using Pada1.BBCore;           // Code attributes
-using Pada1.BBCore.Tasks;     // TaskStatus
-using BBUnity.Actions;        // GOAction
+using System;
+using Unity.Behavior;
+using Unity.Properties;
+using UnityEngine;
+using Action = Unity.Behavior.Action;
 
 /// <summary>
-/// DoneShootOnce is a action inherited from GOAction and Clone a 'bullet' and shoots 
-/// it throught the Forward axis with the specified velocity.
+/// ShootOnceAction is a Unity Behavior action node that instantiates a bullet prefab and
+/// shoots it along the forward axis of the shoot point with the specified velocity.
+/// The action completes after firing a single shot.
 /// </summary>
-[Action("Chapter09/ShootOnce")]
-[Help("Clone a 'bullet' and shoots it through the Forward axis with the " +
-      "specified velocity.")]
-public class ShootOnce : GOAction {
+[Serializable, GeneratePropertyBag]
+[NodeDescription(
+    name: "Shoot Once",
+    story: "Shoot [Bullet] from [ShootPoint] at [Velocity] units per second",
+    category: "Chapter09",
+    id: "chapter09-shootonce-action-v1")]
+public partial class ShootOnceAction : Action
+{
+    /// <summary>The transform marking the bullet spawn position and direction.</summary>
+    [SerializeReference] public BlackboardVariable<Transform> ShootPoint;
 
-    ///<value>Input shootPoint Parameter.</value>
-    // Define the input parameter "shootPoint".
-    [InParam("shootPoint")]
-    public Transform shootPoint;
+    /// <summary>The bullet prefab to instantiate.</summary>
+    [SerializeReference] public BlackboardVariable<GameObject> Bullet;
 
-    ///<value>Input bullet Parameter.</value>
-    // Define the input parameter "bullet" (the prefab to be cloned).
-    [InParam("bullet")]
-    public GameObject bullet;
+    /// <summary>The launch speed in units per second.</summary>
+    [SerializeReference] public BlackboardVariable<float> Velocity;
 
-    ///<value>Input velocity Parameter, by deafult is 30f.</value>
-    // Define the input parameter velocity, and provide a default
-    // value of 30.0 when used as CONSTANT in the editor.
-    [InParam("velocity", DefaultValue = 30f)]
-    public float velocity;
+    /// <summary>
+    /// Fires a single bullet on the first frame. Returns <see cref="Status.Failure"/> if
+    /// the shoot point or bullet prefab is missing; otherwise returns <see cref="Status.Success"/>.
+    /// </summary>
+    protected override Status OnStart()
+    {
+        Transform shootPt = ShootPoint?.Value;
+        GameObject bulletPrefab = Bullet?.Value;
 
-
-    /// <summary>Initialization method of DoneShootOnce.</summary>
-    /// <remarks>If the shootPoint is not established, we look for the shooting point.</remarks>
-
-    // Initialization method. If not established, we look for the shooting point.
-    public override void OnStart() {
-        if (shootPoint == null) {
-            shootPoint = gameObject.transform.Find("shootPoint");
-            if (shootPoint == null) {
-                Debug.LogWarning("Shoot point not specified. ShootOnce will not work " +
-                                 "for " + gameObject.name);
-            }
+        if (shootPt == null || bulletPrefab == null)
+        {
+            Debug.LogWarning("ShootOnceAction: ShootPoint or Bullet is not assigned.");
+            return Status.Failure;
         }
-        base.OnStart();
-    } // OnStart
 
+        float vel = Velocity?.Value ?? 30f;
 
-    /// <summary>Update method of DoneShootOnce.</summary>
-    /// <remarks>Instantiate the bullet prefab, Search the RigitBody component in bullet instance. We add a rigitBody to bullet 
-    /// if doesn´t exist, and then we give it a velocity.</remarks>
-    /// <returns>Return FAILED if the shootPoint is null, and COMPLETE otherwise.</returns>
-    // Main class method, invoked by the execution engine.
-    public override TaskStatus OnUpdate() {
-        if (shootPoint == null || bullet == null) {
-            return TaskStatus.FAILED;
-        }
-        // Instantiate the bullet prefab.
-        GameObject newBullet = Object.Instantiate(
-                                    bullet, shootPoint.position,
-                                    shootPoint.rotation * bullet.transform.rotation
-                                );
-        // Give it a velocity
-        if (newBullet.GetComponent<Rigidbody>() == null)
-            // Safeguard test, altough the rigid body should be provided by the
-            // prefab to set its weight.
-            newBullet.AddComponent<Rigidbody>();
+        GameObject newBullet = UnityEngine.Object.Instantiate(
+            bulletPrefab, shootPt.position,
+            shootPt.rotation * bulletPrefab.transform.rotation);
 
-        newBullet.GetComponent<Rigidbody>().velocity = velocity * shootPoint.forward;
-        // The action is completed. We must inform the execution engine.
-        return TaskStatus.COMPLETED;
+        Rigidbody rb = newBullet.GetComponent<Rigidbody>();
+        if (rb == null)
+            rb = newBullet.AddComponent<Rigidbody>();
+
+        rb.linearVelocity = vel * shootPt.forward;
+
+        return Status.Success;
     }
 
+    protected override Status OnUpdate()
+    {
+        return Status.Success;
+    }
 }
+
