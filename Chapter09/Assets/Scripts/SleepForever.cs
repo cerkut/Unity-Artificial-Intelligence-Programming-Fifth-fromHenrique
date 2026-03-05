@@ -17,14 +17,14 @@ using Action = Unity.Behavior.Action;
 public partial class SleepForeverAction : Action
 {
     /// <summary>
-    /// Suspends the node so it is not called every frame, conserving CPU.
-    /// <see cref="Status.Wait"/> is the Unity Behavior equivalent of the former
-    /// BehaviorBricks <c>TaskStatus.SUSPENDED</c>.
+    /// Keeps the node running indefinitely, effectively doing nothing.
+    /// Unity Native Behavior has no SUSPENDED equivalent; <see cref="Status.Running"/>
+    /// is the correct value to keep a node alive without completing or failing.
     /// </summary>
-    /// <returns>Always returns <see cref="Status.Wait"/>.</returns>
+    /// <returns>Always returns <see cref="Status.Running"/>.</returns>
     protected override Status OnUpdate()
     {
-        return Status.Wait;
+        return Status.Running;
     }
 }
 
