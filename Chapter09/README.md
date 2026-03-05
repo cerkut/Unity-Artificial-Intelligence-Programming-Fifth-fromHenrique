@@ -16,9 +16,11 @@ This chapter demonstrates implementing **Behavior Trees** for game AI in Unity 6
 
 Open **Assets/Scenes/BehaviorTreeDemo** to see the demo.
 
-- **Player** – Click anywhere on the floor to move (uses `PlayerClickToMove.cs`).
+- **Player** – **Left-click** anywhere on the floor to move. **Right-click** anywhere to face that direction and fire a bullet (uses `PlayerClickToMove.cs` + `PlayerShoot.cs`).
 - **Enemy** – Follows a priority-selector behavior tree (uses `EnemyAI.cs`).
 - **Directional Light** – Drives the `DayNightCycle` component that toggles between day and night.
+
+> **NavMesh**: The baked `NavMesh.asset` is committed in `Assets/Scenes/BehaviorTreeDemo/`. Both the Player and the Enemy use a `NavMeshAgent` so click-to-move works without any extra baking step.
 
 ## How the Behavior Tree Works
 
